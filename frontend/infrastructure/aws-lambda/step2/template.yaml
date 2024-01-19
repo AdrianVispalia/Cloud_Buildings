@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Nuxt 3 Functionality
+
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"  # Replace with the specific origin(s) allowed
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - GET
+          - OPTIONS  # Include OPTIONS for preflight requests
+
+  HttpApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../../../.output/server/
+      Handler: index.handler
+      Runtime: nodejs16.x
+      Architectures:
+        - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Description: Nuxt 3 SSR Lambda
+      Events:
+        ProxyResource:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: $default
+            Method: any

@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Nuxt 3 S3 Bucket contents
+
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: adri-test2-s3-sam
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - '*'
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - '*'
+            ExposedHeaders:
+              - Date
+            Id: myCORSRuleId1
+            MaxAge: 3600
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        IgnorePublicAcls: false
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Id: BucketPolicy1
+        Statement:
+          Sid: PublicRead
+          Effect: Allow
+          Principal: '*'
+          Action:
+            - 's3:GetObject'
+          Resource:
+            - !Sub  ${S3Bucket.Arn}/*/*
+            - !Sub  ${S3Bucket.Arn}/*
+            - !Sub  ${S3Bucket.Arn}
+
+  CloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'Serverless website OA'
+
+  CloudfrontDistribution:
+    Type: "AWS::CloudFront::Distribution"
+    Properties:
+      DistributionConfig:
+        Comment: "Cloudfront distribution for serverless website"
+        DefaultRootObject: ""
+        Enabled: true
+        HttpVersion: http2and3
+        Origins:
+          - Id: s3-website
+            DomainName: !GetAtt S3Bucket.RegionalDomainName
+            S3OriginConfig:
+              OriginAccessIdentity: 
+                Fn::Sub: 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+        DefaultCacheBehavior:
+          Compress: true
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: s3-website
+          ViewerProtocolPolicy: allow-all # Allow all viewers to access the CloudFront distribution
+          ForwardedValues:
+            QueryString: true
+            Headers: # Origin Accept Authorization Content-Type
+              - Origin
+              - Accept
+              - Authorization
+              - Content-Type
+
+Outputs:
+  CloudFrontURL:
+    Value: !GetAtt CloudfrontDistribution.DomainName
+    Description: CloudFront Distribution URL
