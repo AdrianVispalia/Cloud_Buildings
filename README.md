@@ -104,13 +104,13 @@ sam deploy --guided --template-file step2.yaml
 - Then select instance, Network, associate to RDS and choose the running RDS.
 - Connect to the instance using Instance Connect (create an EIC endpoint). On the host:
 ```bash
-scp -i "lami_pair.pem" ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql ubuntu@13.49.70.29:/home/ubuntu
+scp -i "<key_pair>.pem" ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql ubuntu@<EC2_IP>:/home/ubuntu
 ```
 - Inside the created EC2 (you can connect using the AWS management console on the browser):
 ```bash
 sudo apt-get install -y postgresql-client net-tools
 ifconfig
-psql -h my-db-instance.ckj37kdk9y49.eu-north-1.rds.amazonaws.com -U postgres -d test_db -a -f insert_db2.sql
+psql -h my-db-instance.<string>.<region>.rds.amazonaws.com -U <user> -d <database> -a -f insert_db2.sql
 ```
 - Now delete the EC2
 > In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
