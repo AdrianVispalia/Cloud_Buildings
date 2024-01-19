@@ -1,11 +1,6 @@
 # Cloud buildings
 
-
-## TODO
-
-1. Improve Depends structure with:
-https://fastapi.tiangolo.com/tutorial/dependencies/dependencies-with-yield/#using-context-managers-in-dependencies-with-yield
-
+**IMPORTANT**: this project is still not production ready, but it is a good starter.
 
 ## DEV
 
