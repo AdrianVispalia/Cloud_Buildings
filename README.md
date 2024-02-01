@@ -1,30 +1,91 @@
 # Cloud buildings
 
-**IMPORTANT**: this project is still not production ready, but it is a good starter.
+A web application system on a NuxtJS webapp and a FastAPI Restful API, with multiple infrastructure deployments using Terraform. 
 
-## DEV
+## Getting started
 
-### Create
+To just test the project with minimal configuration (if you have docker and docker-compose), just execute:
+```bash
+git clone https://github.com/AdrianVispalia/Cloud_Buildings
+cd Cloud_Buildings
+docker-compose build && docker-compose up -d
+```
+
+## Arquitecture
+
+<details>
+
+### Frontend (NuxtJS)
+
+<details>
+
+The front-end is created using NuxtJS, using the JavaScript web framework VueJS version 3. The code can later run on containers or FaaS services.
+
+</details>
+
+### Backend (FastAPI + PostgreSQL + Redis)
+
+<details>
+
+There are 3 micro-services that make the backend:
+- Rest API: FastAPI with Python3 (with SQLAlchemy ORM)
+- Database: PostgreSQL
+- Cache: Redis
+
+The database scheme can be represented with this Entity-Relationship diagram (generated automatically using pgAdmin):
+![ER diagram](./images/ERD.png)
+
+
+Using FastAPI, the documentation is updated and available automatically with OpenAPI and Redoc:
+| Category | OpenAPI (Swagger) | Redoc |
+| - | - | - |
+| Endpoint | *URL/docs* | *URL/redoc* |
+| Image | ![OpenAPI documentation](./images/openapi.png) | ![Redoc documentation](./images/redoc.png) |
+
+</details>
+
+</details>
+
+
+## Deployment
+
+### Development (docker-compose)
+
+<details>
+
+#### Arquitecture schema
+
+![docker-compose schema](./images/docker_compose_schema.png)
+
+#### Create
 
 ```bash
 docker-compose build && docker-compose up -d
 ```
 
-### Delete
+#### Delete
 
 ```bash
 docker-compose down
 ```
 
-## PROD
+</details>
 
-### REST API backend (1st step)
-
-#### AWS with Lambda
+### Production
 
 <details>
 
-##### Create
+#### Backend deployment (1st step)
+
+##### AWS with Lambda
+
+<details>
+
+#### Arquitecture schema
+
+![AWS Lambda backend](./images/aws_lambda_backend_diagram.png)
+
+###### Create
 
 ```bash
 cd rest_api
@@ -33,7 +94,7 @@ terraform init
 terraform apply
 ```
 
-##### Destroy
+###### Destroy
 
 ```bash
 cd rest_api
@@ -42,12 +103,11 @@ terraform destroy
 
 </details>
 
-#### AWS with ECS & ECR
+##### AWS with ECS & ECR
 
 <details>
 
-##### Create
-
+###### Create
 
 ```bash
 cd rest_api
@@ -57,7 +117,7 @@ terraform init
 terraform apply -var "aws_account_id=$aws_account_id"
 ```
 
-##### Destroy
+###### Destroy
 
 ```bash
 cd rest_api
@@ -67,11 +127,17 @@ terraform destroy -var "aws_account_id=$aws_account_id"
 </details>
 
 
-### Lambda + S3 + CloudFront frontend (2nd step)
+#### Frontend deployment (2nd step)
 
 <details>
 
-#### Create
+##### Arquitecture schema
+
+![AWS frontend](./images/aws_lambda_frontend_diagram.png)
+
+
+
+##### Create
 
 ```bash
 cd ./frontend
@@ -111,7 +177,7 @@ psql -h my-db-instance.<string>.<region>.rds.amazonaws.com -U <user> -d <databas
 > In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
 
 
-#### Delete
+##### Delete
 
 In the AWS console, go to the S3 bucket and delete all of the objects. Then:
 ```bash
@@ -121,5 +187,7 @@ cd ../step1
 sam delete
 ```
 
+
+</details>
 
 </details>
