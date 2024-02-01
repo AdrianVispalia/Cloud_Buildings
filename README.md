@@ -151,7 +151,8 @@ cd infrastructure/aws-lambda/step1
 sam deploy --guided
 # during the deployment, after the S3 bucket is created
 # but before CloudFront is deployed, run this:
-aws s3 sync .output/public s3://<your_s3_bucket_name> --cache-control max-age=31536000 --delete
+aws s3 sync .output/public s3://<your_s3_bucket_name> \
+             --cache-control max-age=31536000 --delete
 
 cd ../step2
 # modify on /frontend/nuxt.config.ts cdnURL
@@ -165,13 +166,15 @@ sam deploy --guided --template-file step2.yaml
 - Then select instance, Network, associate to RDS and choose the running RDS.
 - Connect to the instance using Instance Connect (create an EIC endpoint). On the host:
 ```bash
-scp -i "<key_pair>.pem" ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql ubuntu@<EC2_IP>:/home/ubuntu
+scp -i "<key_pair>.pem" ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql \
+                        ubuntu@<EC2_IP>:/home/ubuntu
 ```
 - Inside the created EC2 (you can connect using the AWS management console on the browser):
 ```bash
 sudo apt-get install -y postgresql-client net-tools
 ifconfig
-psql -h my-db-instance.<string>.<region>.rds.amazonaws.com -U <user> -d <database> -a -f insert_db2.sql
+psql -h my-db-instance.<string>.<region>.rds.amazonaws.com \
+                -U <user> -d <database> -a -f insert_db2.sql
 ```
 - Now delete the EC2
 > In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
