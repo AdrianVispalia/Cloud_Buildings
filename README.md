@@ -1,8 +1,8 @@
-# Cloud buildings
+# Cloud buildings ☁🏢☁️
 
 A web application system on a NuxtJS webapp and a FastAPI Restful API, with multiple infrastructure deployments using Terraform. 
 
-## Getting started
+## Getting started 🚀
 
 To just test the project with minimal configuration (if you have docker and docker-compose), just execute:
 ```bash
@@ -11,7 +11,7 @@ cd Cloud_Buildings
 docker-compose build && docker-compose up -d
 ```
 
-## Arquitecture
+## Arquitecture 🏗
 
 <details>
 
@@ -47,9 +47,9 @@ Using FastAPI, the documentation is updated and available automatically with Ope
 </details>
 
 
-## Deployment
+## Deployment 👷🏻📦
 
-### Development (docker-compose)
+### Development (docker-compose) 👨‍💻
 
 <details>
 
@@ -71,11 +71,11 @@ docker-compose down
 
 </details>
 
-### Production
+### Production 📈
 
 <details>
 
-#### Backend deployment (1st step)
+#### 1️⃣ Backend deployment
 
 ##### AWS with Lambda
 
@@ -152,7 +152,7 @@ terraform destroy
 </details>
 
 
-#### Frontend deployment (2nd step)
+#### 2️⃣ Frontend deployment
 
 ##### Azure Functions
 
