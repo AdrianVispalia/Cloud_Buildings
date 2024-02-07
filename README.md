@@ -13,6 +13,9 @@ To just test the project with minimal configuration (if you have docker and dock
 git clone https://github.com/AdrianVispalia/Cloud_Buildings
 cd Cloud_Buildings
 docker-compose build && docker-compose up -d
+wget localhost:8000/api/create
+sudo apt-get install postgresql-client
+psql -h localhost -U user -d test_db -a -f ./rest_api/code/utils/insert_db2.sql
 ```
 
 ## Arquitecture 🏗
@@ -65,6 +68,9 @@ Using FastAPI, the documentation is updated and available automatically with Ope
 
 ```bash
 docker-compose build && docker-compose up -d
+wget localhost:8000/api/create
+sudo apt-get install postgresql-client
+psql -h localhost -U user -d test_db -a -f ./rest_api/code/utils/insert_db2.sql
 ```
 
 #### Delete
@@ -100,7 +106,28 @@ terraform init
 terraform apply
 ```
 
-###### Destroy
+Now check the endpoint and do a GET request to `<endpoint>/api/create` to create the database schema. The last thing is to upload the initial records.
+
+> For Lambda deployment, you will need to create an Internet Gateway & connect it to the VPC, and a routing table on that VPC with an entry 0.0.0.0/0 internet gateway. 
+- Create EC2 in the same vpc (check assign public IP + create a security group in the VPC with port 22 open).
+- Then select instance, Network, associate to RDS and choose the running RDS.
+- Connect to the instance using Instance Connect (create an EIC endpoint). On the host:
+```bash
+scp -i "lami_pair.pem" \
+       ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql \
+       ubuntu@13.49.70.29:/home/ubuntu
+```
+- Inside the created EC2 (you can connect using the AWS management console on the browser):
+```bash
+sudo apt-get install -y postgresql-client net-tools
+ifconfig
+psql -h my-db-instance.ckj37kdk9y49.eu-north-1.rds.amazonaws.com \
+          -U postgres -d test_db -a -f insert_db2.sql
+```
+- Now delete the EC2
+> In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
+
+###### Delete
 
 ```bash
 cd rest_api
@@ -123,7 +150,9 @@ terraform init
 terraform apply -var "aws_account_id=$aws_account_id"
 ```
 
-###### Destroy
+Now check the endpoint and do a GET request to `<endpoint>/api/create` to create the database schema. The last thing is to upload the initial records (similar process to the AWS with lambda section).
+
+###### Delete
 
 ```bash
 cd rest_api
@@ -148,7 +177,10 @@ terraform apply
 ```
 
 
-###### Destroy
+Now check the endpoint and do a GET request to `<endpoint>/api/create` to create the database schema. The last thing is to upload the initial records (similar process to the AWS with lambda section).
+
+
+###### Delete
 
 ```bash
 terraform destroy
@@ -156,6 +188,51 @@ terraform destroy
 
 
 </details>
+
+##### Kubernetes with Minikube
+
+<details>
+
+
+###### Create
+
+```bash
+docker-compose build
+cd ./rest_api/infrastructure/kubernetes-minikube/
+
+minikube start
+
+minikube addons enable ingress
+minikube addons enable ingress-dns
+minikube image push cloud_buildings_fastapi
+
+terraform apply
+
+wget "$(minikube ip)/api/create"
+
+kubectl get svc -n restapins # check the assigned IP of postgres-internal-service
+docker ps # check the container_id of minikube
+docker cp ../../code/utils/insert_db2.sql <minikube_container_id>:/home/docker/insert_db2.sql
+docker exec -it <minikube_container_id> /bin/bash
+```
+
+Inside the minikube node:
+```bash
+sudo apt-get update
+sudo apt-get install -y postgresql-client net-tools
+psql -h <postgres-internal-service_IP> -U postgres -d test_db -a -f /home/docker/insert_db2.sql
+exit
+```
+
+###### Delete
+
+```bash
+terraform destroy
+minikube stop
+```
+
+</details>
+
 </details>
 
 #### 2️⃣ Frontend deployment
@@ -192,7 +269,7 @@ az functionapp deployment source config-zip --resource-group example-resources \
 ```
 
 
-###### Destroy
+###### Delete
 
 ```bash
 cd ./infrastructure/azure-functions/
@@ -235,26 +312,6 @@ cd ../step2
 npx nuxt build
 sam deploy --guided --template-file step2.yaml
 ```
-
-
-> For Lambda deployment, you will need to create an Internet Gateway & connect it to the VPC, and a routing table on that VPC with an entry 0.0.0.0/0 internet gateway. 
-- Create EC2 in the same vpc (check assign public IP + create a security group in the VPC with port 22 open).
-- Then select instance, Network, associate to RDS and choose the running RDS.
-- Connect to the instance using Instance Connect (create an EIC endpoint). On the host:
-```bash
-scp -i "lami_pair.pem" \
-       ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql \
-       ubuntu@13.49.70.29:/home/ubuntu
-```
-- Inside the created EC2 (you can connect using the AWS management console on the browser):
-```bash
-sudo apt-get install -y postgresql-client net-tools
-ifconfig
-psql -h my-db-instance.ckj37kdk9y49.eu-north-1.rds.amazonaws.com \
-          -U postgres -d test_db -a -f insert_db2.sql
-```
-- Now delete the EC2
-> In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
 
 
 ###### Delete
