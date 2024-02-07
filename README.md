@@ -1,6 +1,10 @@
 # Cloud buildings ☁🏢☁️
 
-A web application system on a NuxtJS webapp and a FastAPI Restful API, with multiple infrastructure deployments using Terraform. 
+A web application system for managing building's room metrics, highly scalable and cloud-ready.
+
+
+The system is built on a NuxtJS webapp and a FastAPI Restful API, with multiple infrastructure deployments (Azure Functions, Azure Container Apps, AWS Lambda, AWS ECS, etc.).
+
 
 ## Getting started 🚀
 
@@ -77,6 +81,8 @@ docker-compose down
 
 #### 1️⃣ Backend deployment
 
+<details>
+
 ##### AWS with Lambda
 
 <details>
@@ -150,9 +156,11 @@ terraform destroy
 
 
 </details>
-
+</details>
 
 #### 2️⃣ Frontend deployment
+
+<details>
 
 ##### Azure Functions
 
@@ -168,7 +176,8 @@ az login
 terraform init
 terraform apply
 
-az storage blob upload-batch --account-name abtcdefaha --destination mycontainer  --source .output/public
+az storage blob upload-batch --account-name abtcdefaha \
+      --destination mycontainer  --source .output/public
 
 cd ../..
 # write in nuxt.config.ts on:
@@ -218,7 +227,8 @@ cd infrastructure/aws-lambda/step1
 sam deploy --guided
 # during the deployment, after the S3 bucket is created
 # but before CloudFront is deployed, run this:
-aws s3 sync .output/public s3://<your_s3_bucket_name> --cache-control max-age=31536000 --delete
+aws s3 sync .output/public s3://<your_s3_bucket_name> \
+             --cache-control max-age=31536000 --delete
 
 cd ../step2
 # modify on /frontend/nuxt.config.ts cdnURL
@@ -232,13 +242,16 @@ sam deploy --guided --template-file step2.yaml
 - Then select instance, Network, associate to RDS and choose the running RDS.
 - Connect to the instance using Instance Connect (create an EIC endpoint). On the host:
 ```bash
-scp -i "lami_pair.pem" ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql ubuntu@13.49.70.29:/home/ubuntu
+scp -i "lami_pair.pem" \
+       ~/Cloud_buildings/rest_api/code/utils/insert_db2.sql \
+       ubuntu@13.49.70.29:/home/ubuntu
 ```
 - Inside the created EC2 (you can connect using the AWS management console on the browser):
 ```bash
 sudo apt-get install -y postgresql-client net-tools
 ifconfig
-psql -h my-db-instance.ckj37kdk9y49.eu-north-1.rds.amazonaws.com -U postgres -d test_db -a -f insert_db2.sql
+psql -h my-db-instance.ckj37kdk9y49.eu-north-1.rds.amazonaws.com \
+          -U postgres -d test_db -a -f insert_db2.sql
 ```
 - Now delete the EC2
 > In lambda, delete as weel the routing table entry 0.0.0.0/0, the EIC endpoint and the internet gateway.
@@ -254,5 +267,5 @@ cd ../step1
 sam delete
 ```
 
-
+</details>
 </details>
