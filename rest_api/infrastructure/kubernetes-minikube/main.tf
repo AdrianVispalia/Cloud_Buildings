@@ -12,16 +12,16 @@ provider "kubernetes" {
     config_context = "minikube"
 }
 
-resource "kubernetes_namespace" "rest_api_ns" {
+resource "kubernetes_namespace_v1" "rest_api_ns" {
     metadata {
         name = "restapins"
     }
 }
 
-resource "kubernetes_deployment" "rest_api_deploy" {
+resource "kubernetes_deployment_v1" "rest_api_deploy" {
     metadata {
         name = "restapideploy"
-        namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+        namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
     }
     spec {
         replicas = 2
@@ -60,7 +60,7 @@ resource "kubernetes_deployment" "rest_api_deploy" {
                         name  = "DB_ENDPOINT"
                         value = format(
                             "%s:5432",
-                            kubernetes_service.postgres_internal_service.spec.0.cluster_ip
+                            kubernetes_service_v1.postgres_internal_service.spec.0.cluster_ip
                         )
                     }
                     env {
@@ -77,7 +77,7 @@ resource "kubernetes_deployment" "rest_api_deploy" {
                     }
                     env {
                         name  = "REDIS_IP"
-                        value = kubernetes_service.redis_internal_service.spec.0.cluster_ip
+                        value = kubernetes_service_v1.redis_internal_service.spec.0.cluster_ip
                     }
                     env {
                         name  = "REDIS_PORT"
@@ -89,14 +89,14 @@ resource "kubernetes_deployment" "rest_api_deploy" {
     }
 }
 
-resource "kubernetes_service" "rest_api_srv" {
+resource "kubernetes_service_v1" "rest_api_srv" {
     metadata {
         name = "restapisrv"
-        namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+        namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
     }
     spec {
         selector = {
-            app = kubernetes_deployment.rest_api_deploy.spec.0.template.0.metadata.0.labels.app
+            app = kubernetes_deployment_v1.rest_api_deploy.spec.0.template.0.metadata.0.labels.app
         }
         port {
             port = 80
@@ -110,7 +110,7 @@ resource "kubernetes_service" "rest_api_srv" {
 resource "kubernetes_ingress_v1" "rest_api_ingress" {
   metadata {
     name      = "restapi-ingress"
-    namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+    namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
     annotations = {
         "kubernetes.io/ingress.class" = "nginx"
         "nginx.ingress.kubernetes.io/rewrite-target" = "/$1"
@@ -123,9 +123,9 @@ resource "kubernetes_ingress_v1" "rest_api_ingress" {
           path    = "/(.*)"
           backend {
             service {
-                name = kubernetes_service.rest_api_srv.metadata.0.name
+                name = kubernetes_service_v1.rest_api_srv.metadata.0.name
                 port {
-                    number = kubernetes_service.rest_api_srv.spec.0.port.0.port
+                    number = kubernetes_service_v1.rest_api_srv.spec.0.port.0.port
                 }
             }
           }
@@ -135,10 +135,10 @@ resource "kubernetes_ingress_v1" "rest_api_ingress" {
   }
 }
 
-resource "kubernetes_stateful_set" "database_ss" {
+resource "kubernetes_stateful_set_v1" "database_ss" {
   metadata {
     name = "postgres"
-    namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+    namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
   }
 
   spec {
@@ -153,7 +153,7 @@ resource "kubernetes_stateful_set" "database_ss" {
     volume_claim_template {
       metadata {
         name = "postgres-data"
-        namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+        namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
       }
       spec {
           access_modes = ["ReadWriteMany"]
@@ -201,15 +201,15 @@ resource "kubernetes_stateful_set" "database_ss" {
   }
 }
 
-resource "kubernetes_service" "postgres_internal_service" {
+resource "kubernetes_service_v1" "postgres_internal_service" {
   metadata {
     name      = "postgres-internal-service"
-    namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+    namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
   }
 
   spec {
     selector = {
-      app =  kubernetes_stateful_set.database_ss.spec.0.template.0.metadata.0.labels.app
+      app =  kubernetes_stateful_set_v1.database_ss.spec.0.template.0.metadata.0.labels.app
     }
 
     port {
@@ -219,10 +219,10 @@ resource "kubernetes_service" "postgres_internal_service" {
   }
 }
 
-resource "kubernetes_stateful_set" "cache_ss" {
+resource "kubernetes_stateful_set_v1" "cache_ss" {
   metadata {
     name = "redis"
-    namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+    namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
   }
 
   spec {
@@ -257,15 +257,15 @@ resource "kubernetes_stateful_set" "cache_ss" {
   }
 }
 
-resource "kubernetes_service" "redis_internal_service" {
+resource "kubernetes_service_v1" "redis_internal_service" {
   metadata {
     name      = "redis-internal-service"
-    namespace = kubernetes_namespace.rest_api_ns.metadata.0.name
+    namespace = kubernetes_namespace_v1.rest_api_ns.metadata.0.name
   }
 
   spec {
     selector = {
-      app =  kubernetes_stateful_set.cache_ss.spec.0.template.0.metadata.0.labels.app
+      app =  kubernetes_stateful_set_v1.cache_ss.spec.0.template.0.metadata.0.labels.app
     }
 
     port {
@@ -276,9 +276,9 @@ resource "kubernetes_service" "redis_internal_service" {
 }
 
 output "postgres_internal_service_cluster_ip" {
-  value = kubernetes_service.postgres_internal_service.spec.0.cluster_ip
+  value = kubernetes_service_v1.postgres_internal_service.spec.0.cluster_ip
 }
 
 output "redis_internal_service_cluster_ip" {
-  value = kubernetes_service.redis_internal_service.spec.0.cluster_ip
+  value = kubernetes_service_v1.redis_internal_service.spec.0.cluster_ip
 }
