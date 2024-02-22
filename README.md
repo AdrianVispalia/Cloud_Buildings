@@ -206,6 +206,7 @@ minikube addons enable ingress
 minikube addons enable ingress-dns
 minikube image push cloud_buildings_fastapi
 
+terraform init
 terraform apply
 
 wget "$(minikube ip)/api/create"
@@ -322,6 +323,37 @@ cd /frontend/infrastructure/aws-lambda/step2
 sam delete
 cd ../step1
 sam delete
+```
+
+</details>
+
+
+##### Kubernetes with Minikube
+
+<details>
+
+
+###### Create
+
+```bash
+docker-compose build
+cd ./frontend/infrastructure/kubernetes-minikube/
+
+minikube start
+
+minikube addons enable ingress
+minikube addons enable ingress-dns
+minikube image push nuxt_dev
+
+terraform init
+terraform apply
+```
+
+###### Delete
+
+```bash
+terraform destroy
+minikube stop
 ```
 
 </details>
