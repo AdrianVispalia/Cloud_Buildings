@@ -1,22 +1,3 @@
-variable "aws_account_id" {
-  description = "Your AWS account ID"
-}
-
-variable "aws_region" {
-  type    = string
-  default = "eu-north-1"
-}
-
-variable "aws_az1" {
-  type    = string
-  default = "eu-north-1a"
-}
-
-variable "aws_az2" {
-  type    = string
-  default = "eu-north-1b"
-}
-
 provider "aws" {
   region = var.aws_region
 }
@@ -64,9 +45,4 @@ module "ecs" {
   api_lb_sg                 = module.network.api_lb_sg
   rds_sg_id                 = module.network.rds_sg_id
   elasticache_sg_id         = module.network.elasticache_sg_id
-}
-
-
-output "load_balancer_ip" {
-  value = module.ecs.load_balancer_ip
 }

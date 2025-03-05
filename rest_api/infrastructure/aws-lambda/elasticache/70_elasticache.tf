@@ -1,11 +1,3 @@
-variable "elasticache_sg_id" {
-  description = "ID of the security group for ElastiCache"
-}
-
-variable "elasticache_subnet_group_name" {
-  description = "Name of the elasticache subnet group"
-}
-
 resource "aws_elasticache_cluster" "my_elasticache_cluster" {
   cluster_id           = "my-elasticache-cluster"
   engine               = "redis"
@@ -22,14 +14,3 @@ resource "aws_elasticache_cluster" "my_elasticache_cluster" {
     Name = "MyElastiCacheCluster"
   }
 }
-
-output "ec_ip" {
-  value = aws_elasticache_cluster.my_elasticache_cluster.cache_nodes[0].address
-}
-
-output "ec_port" {
-  value = aws_elasticache_cluster.my_elasticache_cluster.cache_nodes[0].port
-}
-
-
-
